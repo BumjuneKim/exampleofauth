@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 로그인
+            $('#login_btn').click(function () {
+                const myId = $('#my_id').val()
+                const myPw = $('#my_pw').val()
+                if (!myId || !myPw) {
+                    alert('Id, PW 입력해라')
+                    return
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost:3000/login",
+                    data: {id: myId, pw: myPw},
+                    success: function(response){
+                        console.log(response)
+                    }
+                })
+            })
+
+            // 토큰 체크
+            $('#check_token').click(function() {
+                function parseCookie(str) {
+                    if (!str) {
+                        return {}
+                    }
+
+                    return str
+                        .split(';')
+                        .map(v => v.split('='))
+                        .reduce((acc, v) => {
+                            acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+                            return acc;
+                        }, {});
+                }
+
+                const cookies = parseCookie(document.cookie)
+
+                $.ajax({
+                    type: "GET",
+                    url: "http://localhost:3000/check_token",
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Content-type","application/json");
+                        xhr.setRequestHeader("Authorization", `Bearer ${cookies.accessToken}`);
+                    },
+                    headers: {
+                        Authorization: cookies.accessToken
+                    },
+                    data: {},
+                    success: function(response){ // 서버에서 준 결과를 response라는 변수에 담음
+                        console.log(response) // 서버에서 준 결과를 이용해서 나머지 코드를 작성
+                    },
+                    error: function(e) {
+                        console.log(e.responseJSON.errorMessage)
+                    }
+                })
+            })
+        })
+    </script>
+</head>
+<body>
+
+<div>
+    Id: <input type="text" id="my_id">
+    pw: <input type="password" id="my_pw">
+    <button type="button" id="login_btn">로그인</button>
+    <br />
+    <button type="button" id="check_token">토큰 체크</button>
+</div>
+
+</body>
+</html>
